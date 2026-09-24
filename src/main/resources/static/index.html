@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OfflinePay - Mesh Payment System</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+<header class="topbar">
+    <div>
+        <h1>OfflinePay</h1>
+        <p>Mesh Payment System</p>
+    </div>
+    <span class="status">● System Online</span>
+</header>
+
+<main class="container">
+
+    <section class="hero">
+        <h2>Offline Payment Dashboard</h2>
+        <p>Create, transfer and settle payments through the mesh network.</p>
+    </section>
+
+    <section class="cards">
+
+        <div class="card">
+            <h3>Wallet Balance</h3>
+            <div id="walletBalance">Loading...</div>
+        </div>
+
+        <div class="card">
+            <h3>Transactions</h3>
+            <div id="transactionCount">Loading...</div>
+        </div>
+
+        <div class="card">
+            <h3>Mesh Packets</h3>
+            <div id="packetCount">Loading...</div>
+        </div>
+
+    </section>
+
+    <section class="panel">
+        <h2>Send Payment</h2>
+
+        <form id="paymentForm">
+
+            <label for="senderWalletId">Sender Wallet ID</label>
+            <input
+                id="senderWalletId"
+                type="text"
+                placeholder="WALLET001"
+                required
+            >
+
+            <label for="receiverWalletId">Receiver Wallet ID</label>
+            <input
+                id="receiverWalletId"
+                type="text"
+                placeholder="WALLET002"
+                required
+            >
+
+            <label for="amount">Amount</label>
+            <input
+                id="amount"
+                type="number"
+                min="0.01"
+                step="0.01"
+                placeholder="50"
+                required
+            >
+
+            <button type="submit">Create Payment</button>
+
+        </form>
+
+        <div id="paymentResult"></div>
+    </section>
+
+    <section class="panel">
+
+        <div class="panel-header">
+            <h2>Transaction History</h2>
+            <button onclick="loadTransactions()">Refresh</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Sender</th>
+                        <th>Receiver</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody id="transactionTable">
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+
+</main>
+
+<script src="/js/app.js"></script>
+
+</body>
+</html>
