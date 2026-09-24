@@ -162,13 +162,43 @@ document
                 );
             }
 
+            result.textContent = "Packet created. Settling payment...";
+
+            const ingestResponse = await fetch(
+                "/api/bridge/ingest",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(packet)
+                }
+            );
+
+            const settlement = await ingestResponse.json();
+
+            if (!ingestResponse.ok) {
+                throw new Error(
+                    settlement.message ||
+                    "Payment settlement failed"
+                );
+            }
+
             result.innerHTML = `
-                <strong>Payment packet created successfully.</strong>
+                <strong>${settlement.status === "SETTLED"
+                    ? "Payment settled successfully."
+                    : "Payment processed."}</strong>
                 <br>
                 Packet ID: ${packet.packetId}
                 <br>
-                TTL: ${packet.ttl}
+                Status: ${settlement.status}
+                <br>
+                ${settlement.message || ""}
             `;
+
+            await loadWallets();
+            await loadTransactions();
+            await loadMeshPackets();
 
         } catch (error) {
 
@@ -181,3 +211,4 @@ document
 loadWallets();
 loadTransactions();
 loadMeshPackets();
+
