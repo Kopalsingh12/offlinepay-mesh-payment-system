@@ -40,10 +40,8 @@ public class TransactionController {
         return transactionService.getAllTransactions();
     }
 
-    @PostMapping("/{transactionId}/process")
-    public Transaction processTransaction(
-            @PathVariable String transactionId) {
-
-        return transactionService.processTransaction(transactionId);
+    @PostMapping("/{transactionId}/settle")
+    public Transaction settleTransaction(@PathVariable Long transactionId) {
+        return transactionService.settleTransaction(transactionId);
     }
 }

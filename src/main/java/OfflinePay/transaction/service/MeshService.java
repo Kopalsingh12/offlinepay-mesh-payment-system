@@ -12,31 +12,65 @@ import OfflinePay.transaction.dto.MeshPacket;
 @Service
 public class MeshService {
 
-    private final List<MeshPacket> packets = new ArrayList<>();
+    private final List<MeshPacket> packets =
+            new ArrayList<>();
 
-    private final Set<String> receivedPacketIds = new HashSet<>();
+    private final Set<String> receivedPacketIds =
+            new HashSet<>();
 
-    public MeshPacket receivePacket(MeshPacket packet) {
+    public synchronized MeshPacket receivePacket(
+            MeshPacket packet) {
 
-        // Prevent duplicate packets
-        if (receivedPacketIds.contains(packet.getPacketId())) {
+        if (packet == null) {
+            throw new IllegalArgumentException(
+                    "Mesh packet is required"
+            );
+        }
+
+        if (packet.getPacketId() == null ||
+                packet.getPacketId().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Packet ID is required"
+            );
+        }
+
+        // Duplicate packet
+        if (receivedPacketIds.contains(
+                packet.getPacketId())) {
+
             return packet;
         }
 
-        // Increase hop count when packet reaches a new relay
-        packet.setHopCount(packet.getHopCount() + 1);
+        // Packet cannot be relayed after TTL expires
+        if (packet.getTtl() <= 0) {
+            return packet;
+        }
+
+        // Increase hop count at this relay
+        packet.setHopCount(
+                packet.getHopCount() + 1
+        );
+
+        // Consume one TTL hop
+        packet.setTtl(
+                packet.getTtl() - 1
+        );
 
         packets.add(packet);
-        receivedPacketIds.add(packet.getPacketId());
+
+        receivedPacketIds.add(
+                packet.getPacketId()
+        );
 
         return packet;
     }
 
-    public List<MeshPacket> getPackets() {
-        return packets;
+    public synchronized List<MeshPacket> getPackets() {
+        return new ArrayList<>(packets);
     }
 
-    public void clearPackets() {
+    public synchronized void clearPackets() {
         packets.clear();
         receivedPacketIds.clear();
     }

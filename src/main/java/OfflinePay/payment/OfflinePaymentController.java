@@ -18,24 +18,25 @@ public class OfflinePaymentController {
 
     public OfflinePaymentController(
             OfflinePaymentService offlinePaymentService) {
+
         this.offlinePaymentService = offlinePaymentService;
     }
 
     @GetMapping("/key")
-    public String generateKey() throws Exception {
-        return offlinePaymentService.generateSecretKey();
+    public String getServerPublicKey() {
+
+        return offlinePaymentService.getServerPublicKey();
     }
 
     @PostMapping("/create")
     public MeshPacket createOfflinePayment(
             @RequestBody PaymentInstruction instruction,
-            @RequestParam String secretKey,
             @RequestParam String senderDeviceId,
-            @RequestParam String receiverDeviceId) throws Exception {
+            @RequestParam String receiverDeviceId)
+            throws Exception {
 
         return offlinePaymentService.createOfflinePacket(
                 instruction,
-                secretKey,
                 senderDeviceId,
                 receiverDeviceId
         );

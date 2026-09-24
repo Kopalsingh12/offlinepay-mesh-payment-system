@@ -7,6 +7,7 @@ public class MeshPacket {
     private String receiverDeviceId;
     private String payload;
     private int hopCount;
+    private int ttl;
 
     public MeshPacket() {
     }
@@ -16,13 +17,15 @@ public class MeshPacket {
             String senderDeviceId,
             String receiverDeviceId,
             String payload,
-            int hopCount) {
+            int hopCount,
+            int ttl) {
 
         this.packetId = packetId;
         this.senderDeviceId = senderDeviceId;
         this.receiverDeviceId = receiverDeviceId;
         this.payload = payload;
         this.hopCount = hopCount;
+        this.ttl = ttl;
     }
 
     public String getPacketId() {
@@ -63,5 +66,13 @@ public class MeshPacket {
 
     public void setHopCount(int hopCount) {
         this.hopCount = hopCount;
+    }
+
+    public int getTtl() {
+        return ttl;
+    }
+
+    public void setTtl(int ttl) {
+        this.ttl = ttl;
     }
 }

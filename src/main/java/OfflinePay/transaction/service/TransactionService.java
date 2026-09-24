@@ -8,27 +8,50 @@ import org.springframework.transaction.annotation.Transactional;
 
 import OfflinePay.transaction.entity.Transaction;
 import OfflinePay.transaction.repository.TransactionRepository;
-import OfflinePay.wallet.Wallet;
-import OfflinePay.wallet.repository.WalletRepository;
+import OfflinePay.wallet.service.WalletService;
 
 @Service
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final WalletRepository walletRepository;
+    private final WalletService walletService;
 
     public TransactionService(
             TransactionRepository transactionRepository,
-            WalletRepository walletRepository) {
+            WalletService walletService) {
 
         this.transactionRepository = transactionRepository;
-        this.walletRepository = walletRepository;
+        this.walletService = walletService;
     }
 
     public Transaction createTransaction(
             String senderWalletId,
             String receiverWalletId,
             double amount) {
+
+        if (senderWalletId == null || senderWalletId.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Sender wallet ID is required"
+            );
+        }
+
+        if (receiverWalletId == null || receiverWalletId.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Receiver wallet ID is required"
+            );
+        }
+
+        if (senderWalletId.equals(receiverWalletId)) {
+            throw new IllegalArgumentException(
+                    "Sender and receiver wallets must be different"
+            );
+        }
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException(
+                    "Transaction amount must be greater than zero"
+            );
+        }
 
         Transaction transaction = new Transaction();
 
@@ -46,44 +69,33 @@ public class TransactionService {
     }
 
     @Transactional
-    public Transaction processTransaction(String transactionId) {
+    public Transaction settleTransaction(Long transactionId) {
 
         Transaction transaction = transactionRepository
-                .findByTransactionId(transactionId)
+                .findById(transactionId)
                 .orElseThrow(() ->
-                        new RuntimeException("Transaction not found"));
+                        new IllegalArgumentException(
+                                "Transaction not found: " + transactionId
+                        ));
 
-        if (!transaction.getStatus().equals("PENDING")) {
-            throw new RuntimeException("Transaction already processed");
+        if ("SETTLED".equals(transaction.getStatus())) {
+            return transaction;
         }
 
-        Wallet sender = walletRepository
-                .findByWalletId(transaction.getSenderWalletId())
-                .orElseThrow(() ->
-                        new RuntimeException("Sender wallet not found"));
-
-        Wallet receiver = walletRepository
-                .findByWalletId(transaction.getReceiverWalletId())
-                .orElseThrow(() ->
-                        new RuntimeException("Receiver wallet not found"));
-
-        if (sender.getBalance() < transaction.getAmount()) {
-            transaction.setStatus("FAILED");
-            return transactionRepository.save(transaction);
+        if (!"PENDING".equals(transaction.getStatus())) {
+            throw new IllegalStateException(
+                    "Transaction cannot be settled. Current status: "
+                            + transaction.getStatus()
+            );
         }
 
-        sender.setBalance(
-                sender.getBalance() - transaction.getAmount()
+        walletService.transfer(
+                transaction.getSenderWalletId(),
+                transaction.getReceiverWalletId(),
+                transaction.getAmount()
         );
 
-        receiver.setBalance(
-                receiver.getBalance() + transaction.getAmount()
-        );
-
-        walletRepository.save(sender);
-        walletRepository.save(receiver);
-
-        transaction.setStatus("SUCCESS");
+        transaction.setStatus("SETTLED");
 
         return transactionRepository.save(transaction);
     }
